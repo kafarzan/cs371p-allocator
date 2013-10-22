@@ -18,6 +18,7 @@
 // ---------
 // Allocator
 // ---------
+using namespace std;
 
 template <typename T, int N>
 class Allocator {
@@ -97,8 +98,10 @@ class Allocator {
             int frontSentinel = freeSpace;
             int backSentinel = freeSpace;
 
+            //place the fornt and back sentinel of freespace into the array
             view(0) = frontSentinel;
             view(N-1) = backSentinel;
+            // cout << view(1) << endl;
 
             // <your code>
             assert(valid());}
@@ -121,6 +124,49 @@ class Allocator {
          * choose the first block that fits
          */
         pointer allocate (size_type n) {
+            int smallestBlock = sizeof(T) + (2 * sizeof(int));
+            // int originalSentinel;
+            int currentPosition = 0;
+            int currentSentinel = view(currentPosition);
+            bool freeBlock = false;
+            int frontSentinel = n;
+            int backSentinel = n;
+            // cout << n << endl;
+            pointer p;
+            while(currentPosition != N-1 && !freeBlock)
+            {
+                if(currentSentinel > 0 && currentSentinel >= smallestBlock)
+                {
+                    // originalSentinel = view(originalSentinel);
+                    int newFrontSent = currentPosition +8 + n;
+                    int newBackSent = currentPosition + 8 + n + (view(currentPosition) -8-n);
+                    // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
+                    view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
+                    view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
+                    view(currentPosition) = (-1*(n)); // place new sentinels for busy space
+                    view(currentPosition+n+4) = (-1*(n));
+                    // cout << n << endl;
+                    // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
+                    // cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
+
+                    freeBlock = true;
+                }
+                else
+                {
+                    if(currentSentinel < 0)
+                    {
+                        int temp = currentSentinel * -1;
+                        currentPosition += temp-1;
+                        cout << "hello " << endl;
+                    }
+                    else
+                    {
+                        currentPosition += currentSentinel-1;
+                        cout << "hello " << endl;
+
+                    }
+                }
+            }
             // <your code>
             assert(valid());
             return 0;}                   // replace!
