@@ -141,41 +141,45 @@ class Allocator {
          * choose the first block that fits
          */
         pointer allocate (size_type n) {
-            assert(n > 0);
+            assert(sizeof(T)*n > 0);
             int smallestBlock = sizeof(T) + (2 * sizeof(int));
             // int originalSentinel;
             //current position in the array
             int currentPosition = 0;
             int currentSentinel = view(currentPosition); // sentinel at current position
             bool freeBlock = false;
-            int frontSentinel = n;
-            int backSentinel = n;
+            int frontSentinel = sizeof(T)*n;
+            int backSentinel = sizeof(T)*n;
             // cout << n << endl;
             pointer p;
             while(currentPosition != N-1 && !freeBlock)
             {
-                if(currentSentinel > n+8 && (currentSentinel-n-8) >= smallestBlock)
+                currentSentinel = view(currentPosition);
+                if(currentSentinel > sizeof(T)*n+8 && (currentSentinel-(sizeof(T)*n)-8) >= smallestBlock)
                 {
                     // originalSentinel = view(originalSentinel);
-                    int sentinelVal = n*-1;
-                    int newFrontSent = currentPosition +8 + n;
-                    int newBackSent = currentPosition + 8 + n + (view(currentPosition) -8-n);
+                    int sentinelVal = -(sizeof(T)*n);
+                    int newFrontSent = currentPosition +8 + sizeof(T)*n;
+                    int newBackSent = currentPosition + 4 + (view(currentPosition));
                     // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
 
-                    view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
-                    view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
-                    view(currentPosition) = sentinelVal; // place new sentinels for busy space
-                    view(currentPosition+n+4) = sentinelVal;
+                    //calculate and set freespace sentinels
+                    view(newFrontSent) = view(currentPosition)  -(sizeof(T)*n)-8;
+                    view(newBackSent) = view(currentPosition) -(sizeof(T)*n)-8;
+                    // place new sentinels for busy space
+                    view(currentPosition) = sentinelVal; 
+                    view(currentPosition+(sizeof(T)*n)+4) = sentinelVal;
 
-                    cout << sentinelVal << endl;
+                    // cout << sentinelVal << endl;
                     
                     //set the back sentinel of the busy space
                     
                     ///get the pointer of the the sentinel
+                    cout << "2" << endl;
                     cout << "P should be : "<< view(currentPosition) << endl;
                     p = reinterpret_cast<pointer>(&view(currentPosition));
                     
-                    cout << "P is : " << *p << endl;
+                    cout << "P is : " << p << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
@@ -183,10 +187,10 @@ class Allocator {
 
                     freeBlock = true;
                 }
-                else if(currentSentinel > n+8)
+                else if(currentSentinel > (sizeof(T)*n)+8)
                 {
                                         // originalSentinel = view(originalSentinel);
-                    int sentinelVal = currentSentinel;
+                    int sentinelVal = -currentSentinel;
                     // int newFrontSent = currentPosition +8 + n;
                     // int newBackSent = currentPosition + 8 + n + (view(currentPosition) -8-n);
                     // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
@@ -194,16 +198,17 @@ class Allocator {
                     // view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
                     // view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
                     view(currentPosition) = sentinelVal; // place new sentinels for busy space
-                    view(currentPosition + view(currentPosition)) = sentinelVal;
-                    cout << sentinelVal << endl;
+                    view(currentPosition + view(currentPosition)+4) = sentinelVal;
+                    // cout << sentinelVal << endl;
                     
                     //set the back sentinel of the busy space
-   
+                    
+                    cout << "2" << endl;
                     cout << "P should be : "<< view(currentPosition) << endl;
                     ///get the pointer of the the sentinel
                     p = reinterpret_cast<pointer>(&view(currentPosition));
                     
-                    cout << "P is : " << *p << endl;
+                    cout << "P is : " << p << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
@@ -216,7 +221,7 @@ class Allocator {
                     if(currentSentinel < 0)
                     {
                         assert(!freeBlock);
-                        int temp = currentSentinel * -1;
+                        int temp = -currentSentinel;
                         assert (temp > 0);
                         currentPosition += temp+8;
                         // cout << "hello " << endl;
