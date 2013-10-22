@@ -109,18 +109,17 @@ class Allocator {
 
         // copy constructor
         Allocator(const Allocator&){
-
+            //your code
         }
 
         //destructor
         ~Allocator(){
-
+            //your code
         }
 
         //copy assignment
-        Allocator& operator = (const Allocator&)()
-        {
-
+        Allocator& operator = (const Allocator&)() {
+            //your code
         }
 
         // Default copy, destructor, and copy assignment
