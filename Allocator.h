@@ -91,6 +91,7 @@ class Allocator {
          * O(1) in time
          * <your documentation>
          */
+         //default constructor
         Allocator () {
 
             int freeSpace = N-8;
@@ -105,6 +106,22 @@ class Allocator {
 
             // <your code>
             assert(valid());}
+
+        // copy constructor
+        Allocator(const Allocator&){
+
+        }
+
+        //destructor
+        ~Allocator(){
+
+        }
+
+        //copy assignment
+        Allocator& operator = (const Allocator&)()
+        {
+
+        }
 
         // Default copy, destructor, and copy assignment
         // Allocator  (const Allocator&);
@@ -145,9 +162,11 @@ class Allocator {
                     view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
                     view(currentPosition) = (-1*(n)); // place new sentinels for busy space
                     view(currentPosition+n+4) = (-1*(n));
+                    p = reinterpret_cast<pointer>(&view(currentPosition+4));
+
                     // cout << n << endl;
-                    // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
-                    // cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
+                    cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
+                    cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
 
                     freeBlock = true;
                 }
@@ -169,7 +188,7 @@ class Allocator {
             }
             // <your code>
             assert(valid());
-            return 0;}                   // replace!
+            return p;}                   // replace!
 
         // ---------
         // construct
@@ -195,6 +214,9 @@ class Allocator {
          * after deallocation adjacent free blocks must be coalesced
          */
         void deallocate (pointer p, size_type) {
+            int currentPosition = *p;
+            // cout << "p is : " << currentPosition << endl;
+
             // <your code>
             assert(valid());}
 
