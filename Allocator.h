@@ -175,11 +175,11 @@ class Allocator {
                     //set the back sentinel of the busy space
                     
                     ///get the pointer of the the sentinel
-                    cout << "2" << endl;
-                    cout << "P should be : "<< view(currentPosition) << endl;
-                    p = reinterpret_cast<pointer>(&view(currentPosition));
+                    cout << "1" << endl;
+                    cout << "P should be : "<< &view(currentPosition+4) << endl;
+                    p = reinterpret_cast<pointer>(&view(currentPosition+4));
                     
-                    cout << "P is : " << p << endl;
+                    cout << "P is : " << &*p << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
@@ -198,17 +198,17 @@ class Allocator {
                     // view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
                     // view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
                     view(currentPosition) = sentinelVal; // place new sentinels for busy space
-                    view(currentPosition + view(currentPosition)+4) = sentinelVal;
+                    view(currentPosition + view(currentPosition+4)) = sentinelVal;
                     // cout << sentinelVal << endl;
                     
                     //set the back sentinel of the busy space
                     
                     cout << "2" << endl;
-                    cout << "P should be : "<< view(currentPosition) << endl;
+                    cout << "P should be : "<< &view(currentPosition+4) << endl;
                     ///get the pointer of the the sentinel
-                    p = reinterpret_cast<pointer>(&view(currentPosition));
+                    p = reinterpret_cast<pointer>(&view(currentPosition+4));
                     
-                    cout << "P is : " << p << endl;
+                    cout << "P is : " << &*p << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
