@@ -109,6 +109,7 @@ class Allocator {
 
         // copy constructor
         Allocator(const Allocator&){
+
             //your code
         }
 
@@ -122,7 +123,7 @@ class Allocator {
             //your code
         }
 
-        // Default copy, destructor, and copy assignment
+        // Default, copy, destructor, and copy assignment
         // Allocator  (const Allocator&);
         // ~Allocator ();
         // Allocator& operator = (const Allocator&);
@@ -140,10 +141,12 @@ class Allocator {
          * choose the first block that fits
          */
         pointer allocate (size_type n) {
+            assert(n > 0);
             int smallestBlock = sizeof(T) + (2 * sizeof(int));
             // int originalSentinel;
+            //current position in the array
             int currentPosition = 0;
-            int currentSentinel = view(currentPosition);
+            int currentSentinel = view(currentPosition); // sentinel at current position
             bool freeBlock = false;
             int frontSentinel = n;
             int backSentinel = n;
@@ -151,21 +154,60 @@ class Allocator {
             pointer p;
             while(currentPosition != N-1 && !freeBlock)
             {
-                if(currentSentinel > 0 && currentSentinel >= smallestBlock)
+                if(currentSentinel > n+8 && (currentSentinel-n-8) >= smallestBlock)
                 {
                     // originalSentinel = view(originalSentinel);
+                    int sentinelVal = n*-1;
                     int newFrontSent = currentPosition +8 + n;
                     int newBackSent = currentPosition + 8 + n + (view(currentPosition) -8-n);
                     // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
+
                     view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
                     view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
-                    view(currentPosition) = (-1*(n)); // place new sentinels for busy space
-                    view(currentPosition+n+4) = (-1*(n));
-                    p = reinterpret_cast<pointer>(&view(currentPosition+4));
+                    view(currentPosition) = sentinelVal; // place new sentinels for busy space
+                    view(currentPosition+n+4) = sentinelVal;
+
+                    cout << sentinelVal << endl;
+                    
+                    //set the back sentinel of the busy space
+                    
+                    ///get the pointer of the the sentinel
+                    cout << "P should be : "<< view(currentPosition) << endl;
+                    p = reinterpret_cast<pointer>(&view(currentPosition));
+                    
+                    cout << "P is : " << *p << endl;
 
                     // cout << n << endl;
-                    cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
-                    cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
+                    // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
+                    // cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
+
+                    freeBlock = true;
+                }
+                else if(currentSentinel > n+8)
+                {
+                                        // originalSentinel = view(originalSentinel);
+                    int sentinelVal = currentSentinel;
+                    // int newFrontSent = currentPosition +8 + n;
+                    // int newBackSent = currentPosition + 8 + n + (view(currentPosition) -8-n);
+                    // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
+
+                    // view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
+                    // view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
+                    view(currentPosition) = sentinelVal; // place new sentinels for busy space
+                    view(currentPosition + view(currentPosition)) = sentinelVal;
+                    cout << sentinelVal << endl;
+                    
+                    //set the back sentinel of the busy space
+   
+                    cout << "P should be : "<< view(currentPosition) << endl;
+                    ///get the pointer of the the sentinel
+                    p = reinterpret_cast<pointer>(&view(currentPosition));
+                    
+                    cout << "P is : " << *p << endl;
+
+                    // cout << n << endl;
+                    // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
+                    // cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
 
                     freeBlock = true;
                 }
@@ -173,17 +215,22 @@ class Allocator {
                 {
                     if(currentSentinel < 0)
                     {
+                        assert(!freeBlock);
                         int temp = currentSentinel * -1;
+                        assert (temp > 0);
                         currentPosition += temp+8;
-                        cout << "hello " << endl;
+                        // cout << "hello " << endl;
                     }
                     else
                     {
+                        assert(!freeBlock);
+                        assert(currentPosition > 0);
                         currentPosition += currentSentinel+8;
-                        cout << "hello " << endl;
+                        // cout << "hello " << endl;
                     }
                 }
             }
+            assert(freeBlock);
             // <your code>
             assert(valid());
             return p;}                   // replace!
