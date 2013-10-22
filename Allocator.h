@@ -118,7 +118,7 @@ class Allocator {
         }
 
         //copy assignment
-        Allocator& operator = (const Allocator&)() {
+        Allocator& operator = (const Allocator&){
             //your code
         }
 
@@ -174,14 +174,13 @@ class Allocator {
                     if(currentSentinel < 0)
                     {
                         int temp = currentSentinel * -1;
-                        currentPosition += temp-1;
+                        currentPosition += temp+8;
                         cout << "hello " << endl;
                     }
                     else
                     {
-                        currentPosition += currentSentinel-1;
+                        currentPosition += currentSentinel+8;
                         cout << "hello " << endl;
-
                     }
                 }
             }
