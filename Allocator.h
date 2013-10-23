@@ -191,7 +191,8 @@ class Allocator {
                     // view(newFrontSent) = view(currentPosition)  -n-8; // set the freeblock from the current sentinel forward n+8 bytes
                     // view(newBackSent) = view(currentPosition) -n-8; // set the backsentinel to here
                     view(currentPosition) = sentinelVal; // place new sentinels for busy space
-                    view(currentPosition + view(currentPosition+4)) = sentinelVal;
+                    view(-(currentPosition + view(currentPosition)-4)) = sentinelVal;
+                    // cout << "SECOND SENTINEL SHOULD BE AT POSITION : "<<  view(-(currentPosition + view(currentPosition)-4)) << endl;
                     // cout << sentinelVal << endl;
 
                     
@@ -202,7 +203,9 @@ class Allocator {
                     ///get the pointer of the the sentinel
                     p = reinterpret_cast<pointer>(&view(currentPosition+4));
                     
-                    cout << "Sentinel is : " << *(p-4) << endl;
+                    int* test = reinterpret_cast<int*>(p);
+
+                    cout << "Sentinel is : " << *(--test) << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
@@ -229,6 +232,7 @@ class Allocator {
                     }
                 }
             }
+            // cout << "LOOOK HERERERERE : " << view(96) << endl;;
             assert(freeBlock);
             // <your code>
             assert(valid());
@@ -259,17 +263,34 @@ class Allocator {
          */
         void deallocate (pointer p, size_type n) {
             
+            int adjacentFreeBlockCount = 0;
             int* frontSentinelPoint = reinterpret_cast<int*>(p);
             int frontSentinel = *(--frontSentinelPoint);
-            assert(frontSentinel < 0);
             frontSentinel = -frontSentinel;
 
-           // cout << "N:" << n*sizeof(T) << " bytes" << endl;
-            // size_type = how many
-            // int frontSentinel = *(p - 4);
-           // cout << "front sentinel is " << frontSentinel << endl;
-           // cout << "address of front sentinel " << p << endl;
-            // <your code>
+            char* first = reinterpret_cast<char*>(p);
+            char *second = first + frontSentinel;
+            int firstIndex = first - &a[0] - 4;
+            int secondIndex = second - &a[0];
+            cout << "index: " <<  secondIndex << endl;
+
+
+            view(firstIndex) = frontSentinel;
+            view(secondIndex) = frontSentinel;
+
+            if(view(secondIndex + 4) > 0)
+            {
+                view(firstIndex) = frontSentinel + view(secondIndex + 4) + 8;
+                cout << "FirstSentinel " << view(firstIndex) << endl;
+                int nextFirstSentinel = view(secondIndex + 4);
+               // cout << "nextFirst Sentinel: " << nextFirstSentinel << endl;
+                int nextSecondIndex = secondIndex + 4 + nextFirstSentinel;
+                //cout << "nextSecondIndex " << nextSecondIndex << endl;
+                view(nextSecondIndex) = nextFirstSentinel + frontSentinel + 8;
+                cout << "next second sentinel " << view(nextSecondIndex) << endl;
+               // view(secondIndex + 4 + view(secondIndex + 4)) = 
+
+            }
             assert(valid());}
 
         // -------
