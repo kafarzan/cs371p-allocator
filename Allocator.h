@@ -93,7 +93,7 @@ class Allocator {
          */
          //default constructor
         Allocator () {
-
+             // <your code>
             int freeSpace = N-8;
 
             int frontSentinel = freeSpace;
@@ -104,25 +104,8 @@ class Allocator {
             view(N-1) = backSentinel;
             // cout << view(1) << endl;
 
-            // <your code>
+           
             assert(valid());}
-
-        // copy constructor
-        Allocator(const Allocator&){
-
-            //your code
-        }
-
-        //destructor
-        ~Allocator(){
-            //your code
-        }
-
-        //copy assignment
-        Allocator& operator = (const Allocator&){
-            //your code
-        }
-
         // Default, copy, destructor, and copy assignment
         // Allocator  (const Allocator&);
         // ~Allocator ();
@@ -147,40 +130,50 @@ class Allocator {
             //current position in the array
             int currentPosition = 0;
             int currentSentinel = view(currentPosition); // sentinel at current position
+            assert(currentSentinel == 92);
             bool freeBlock = false;
             int frontSentinel = sizeof(T)*n;
             int backSentinel = sizeof(T)*n;
+            int allBytesNeeded = sizeof(T)*n + 8;
             // cout << n << endl;
             pointer p;
+
+
+            // We need to iterate over the array. Stop when we find a free block.
             while(currentPosition != N-1 && !freeBlock)
             {
                 currentSentinel = view(currentPosition);
-                if(currentSentinel > sizeof(T)*n+8 && (currentSentinel-(sizeof(T)*n)-8) >= smallestBlock)
+                // Check if we have enough bytes and if the remaining bytes are enough to allocate another type
+                if(currentSentinel >= allBytesNeeded && (currentSentinel - allBytesNeeded) >= smallestBlock)
                 {
                     // originalSentinel = view(originalSentinel);
                     int sentinelVal = -(sizeof(T)*n);
-                    int newFrontSent = currentPosition +8 + sizeof(T)*n;
-                    int newBackSent = currentPosition + 4 + (view(currentPosition));
+                    // Indices for new sentinels
+                    int newFreeFrontSent = currentPosition + allBytesNeeded;
+                    int newFreeBackSent = currentPosition + 4 + (view(currentPosition));
                     // cout << view(currentPosition) << " and " << view(currentPosition+view(currentPosition-4))  << endl;
 
                     //calculate and set freespace sentinels
-                    view(newFrontSent) = view(currentPosition)  -(sizeof(T)*n)-8;
-                    view(newBackSent) = view(currentPosition) -(sizeof(T)*n)-8;
+                    cout << "Free space left: " << view(currentPosition) - allBytesNeeded << endl;
+                    view(newFreeFrontSent) = view(currentPosition)  - allBytesNeeded;
+                    view(newFreeBackSent) = view(currentPosition) - allBytesNeeded;
                     // place new sentinels for busy space
+
+                    // Sentinels of what we are trying to allocate get updated to actualBytesNeeded (not all)
                     view(currentPosition) = sentinelVal; 
                     view(currentPosition+(sizeof(T)*n)+4) = sentinelVal;
 
-                    // cout << sentinelVal << endl;
-                    
                     //set the back sentinel of the busy space
                     
                     ///get the pointer of the the sentinel
-                    cout << "1" << endl;
-                    cout << "P should be : "<< &view(currentPosition+4) << endl;
+                   cout << "Sentinel should be : "<< view(currentPosition) << endl;
+  
+                    //  cout << "1" << endl;
+                   //  cout << "P should be : "<< &view(currentPosition+4) << endl;
                     p = reinterpret_cast<pointer>(&view(currentPosition+4));
-                    
-                    cout << "P is : " << &*p << endl;
+                    int* test = reinterpret_cast<int*>(p);
 
+                    cout << "Sentinel is : " << *(--test) << endl;
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
                     // cout << "front free sentinel = "<< view(newFrontSent) << " Back free sentinel = " <<  view(newBackSent)<< endl;
@@ -200,15 +193,16 @@ class Allocator {
                     view(currentPosition) = sentinelVal; // place new sentinels for busy space
                     view(currentPosition + view(currentPosition+4)) = sentinelVal;
                     // cout << sentinelVal << endl;
+
                     
                     //set the back sentinel of the busy space
                     
-                    cout << "2" << endl;
-                    cout << "P should be : "<< &view(currentPosition+4) << endl;
+                    // cout << "2" << endl;
+                    cout << "Sentinel should be : "<< view(currentPosition) << endl;
                     ///get the pointer of the the sentinel
                     p = reinterpret_cast<pointer>(&view(currentPosition+4));
                     
-                    cout << "P is : " << &*p << endl;
+                    cout << "Sentinel is : " << *(p-4) << endl;
 
                     // cout << n << endl;
                     // cout << "front busy sentinel = "<< view(currentPosition) << " Back busy sentinel = " <<  view(currentPosition+n+4)<< endl;
@@ -263,10 +257,18 @@ class Allocator {
          * <your documentation>
          * after deallocation adjacent free blocks must be coalesced
          */
-        void deallocate (pointer p, size_type) {
-            int currentPosition = *p;
-            // cout << "p is : " << currentPosition << endl;
+        void deallocate (pointer p, size_type n) {
+            
+            int* frontSentinelPoint = reinterpret_cast<int*>(p);
+            int frontSentinel = *(--frontSentinelPoint);
+            assert(frontSentinel < 0);
+            frontSentinel = -frontSentinel;
 
+           // cout << "N:" << n*sizeof(T) << " bytes" << endl;
+            // size_type = how many
+            // int frontSentinel = *(p - 4);
+           // cout << "front sentinel is " << frontSentinel << endl;
+           // cout << "address of front sentinel " << p << endl;
             // <your code>
             assert(valid());}
 

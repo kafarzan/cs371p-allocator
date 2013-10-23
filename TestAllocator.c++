@@ -32,7 +32,7 @@ To test the program:
 
 #include <algorithm> // count
 #include <memory>    // allocator
-
+#include <iostream>
 #include "gtest/gtest.h"
 
 #include "Allocator.h"
@@ -40,7 +40,7 @@ To test the program:
 // -------------
 // TestAllocator
 // -------------
-
+using namespace std;
 template <typename A>
 struct TestAllocator : testing::Test {
     // --------
@@ -52,12 +52,28 @@ struct TestAllocator : testing::Test {
     typedef typename A::difference_type difference_type;
     typedef typename A::pointer         pointer;};
 
+
+
+template <typename B>
+struct OurAllocator : testing::Test {
+    typedef          B                  allocator_type;
+    typedef typename B::value_type      value_type;
+    typedef typename B::difference_type difference_type;
+    typedef typename B::pointer         pointer;};
+
+
 typedef testing::Types<
             std::allocator<int>,
             std::allocator<double>,
             Allocator<int, 100>,
             Allocator<double, 100> >
         my_types;
+
+typedef testing::Types<
+            Allocator<int, 100>,
+            Allocator<double, 100> >
+        our_types;
+
 
 TYPED_TEST_CASE(TestAllocator, my_types);
 
@@ -105,3 +121,88 @@ TYPED_TEST(TestAllocator, Ten) {
             --e;
             x.destroy(e);}
         x.deallocate(b, s);}}
+
+
+
+
+TYPED_TEST_CASE(OurAllocator, our_types);
+
+
+
+TYPED_TEST(OurAllocator, Sentinels) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+
+    allocator_type x;
+    const difference_type s = 2;
+    const value_type      v = 2;
+    pointer         b = x.allocate(s);
+
+
+    cout << sizeof(x) << " Total Array bytes" << endl;
+    cout << sizeof(v) << " Type bytes" << endl;
+    cout << s << " types put in" << endl;
+
+    int frontSentinel = -sizeof(v) * s;
+    int* realSentinelPoint = reinterpret_cast<int*>(b);
+    int realSentinel = *(--realSentinelPoint);
+    //cout << "front: " << frontSentinel << " real " << realSentinel << endl;
+    ASSERT_EQ(realSentinel, frontSentinel);
+    if (b != 0) {
+        pointer e = b + s;
+        pointer p = b;
+        try {
+            while (p != e) {
+                x.construct(p, v);
+                ++p;}}
+        catch (...) {
+            while (b != p) {
+                --p;
+                x.destroy(p);}
+            x.deallocate(b, s);
+            throw;}
+        }
+    }
+
+
+TYPED_TEST(OurAllocator, OneDoubleSentinel) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+
+    allocator_type x;
+    const difference_type s = 1;
+    const value_type      v = 2;
+    pointer         b = x.allocate(s);
+
+
+
+    cout << sizeof(x) << " Total Array bytes" << endl;
+    cout << sizeof(v) << " Type bytes" << endl;
+    cout << s << " types put in" << endl;
+    cout << sizeof(*b) << " pointing to type" << endl;
+    
+    int frontSentinel = -sizeof(v) * s;
+    int* realSentinelPoint = reinterpret_cast<int*>(b);
+    int realSentinel = *(--realSentinelPoint);
+    
+    //cout << "front: " << frontSentinel << " real " << realSentinel << endl;
+    ASSERT_EQ(realSentinel, frontSentinel);
+    if (b != 0) {
+        pointer e = b + s;
+        pointer p = b;
+        try {
+            while (p != e) {
+                x.construct(p, v);
+                ++p;}}
+        catch (...) {
+            while (b != p) {
+                --p;
+                x.destroy(p);}
+            x.deallocate(b, s);
+            throw;}
+        }
+    }
