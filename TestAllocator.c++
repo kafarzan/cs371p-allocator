@@ -70,13 +70,23 @@ struct OurAllocator2 : testing::Test {
     typedef typename C::difference_type difference_type;
     typedef typename C::pointer         pointer;};
 
+template <typename D>
+struct SmallTest : testing::Test {
+    typedef          D                  allocator_type;
+    typedef typename D::value_type      value_type;
+    typedef typename D::difference_type difference_type;
+    typedef typename D::pointer         pointer;};
+
 typedef testing::Types<
             std::allocator<int>,
             std::allocator<double>,
             Allocator<int, 100>,
             Allocator<double, 100> >
         my_types;
-
+// Two things on each block
+typedef testing:: Types<
+    Allocator<char, 20>>
+small_types;
 typedef testing::Types<
             Allocator<int, 100>,
             Allocator<double, 100>,
@@ -97,20 +107,34 @@ typedef testing::Types<
 TYPED_TEST_CASE(TestAllocator, my_types);
 
 TYPED_TEST(TestAllocator, One) {
+                        // cout << "break-2" << endl;
+
     typedef typename TestFixture::allocator_type  allocator_type;
     typedef typename TestFixture::value_type      value_type;
     typedef typename TestFixture::difference_type difference_type;
     typedef typename TestFixture::pointer         pointer;
+                    // cout << "break-1" << endl;
 
     allocator_type x;
     const difference_type s = 1;
     const value_type      v = 2;
+    // cout << "break0" << endl;
+
     const pointer         p = x.allocate(s);
     if (p != 0) {
+        // cout << "break1" << endl;
         x.construct(p, v);
+                // cout << "break1" << endl;
+
         ASSERT_EQ(v, *p);
+                // cout << "break2" << endl;
+
         x.destroy(p);
-        x.deallocate(p, s);}}
+                // cout << "break3" << endl;
+
+        x.deallocate(p, s);}
+            // cout << "break4" << endl;
+}
 
 TYPED_TEST(TestAllocator, Ten) {
     typedef typename TestFixture::allocator_type  allocator_type;
@@ -127,19 +151,62 @@ TYPED_TEST(TestAllocator, Ten) {
         pointer p = b;
         try {
             while (p != e) {
+                    // cout << "break0" << endl;
+
                 x.construct(p, v);
                 ++p;}}
         catch (...) {
             while (b != p) {
                 --p;
+                                // cout << "break2" << endl;
+
                 x.destroy(p);}
+                                // cout << "break3" << endl;
+
             x.deallocate(b, s);
+                        // cout << "break4" << endl;
+
             throw;}
+                        // cout << "break5" << endl;
+
         ASSERT_EQ(s, std::count(b, e, v));
+                    // cout << "break6" << endl;
+
         while (b != e) {
             --e;
+                                // cout << "break7" << endl;
+
             x.destroy(e);}
+                                // cout << "break8" << endl;
+
         x.deallocate(b, s);}}
+
+
+
+TYPED_TEST_CASE(SmallTest, small_types);
+
+
+TYPED_TEST(SmallTest, CheckValues) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+
+    allocator_type x;
+    // int frontSentinel = -sizeof(v) * s;
+    // int* realSentinelPoint = reinterpret_cast<int*>(b);
+    // int realSentinel = *(--realSentinelPoint);
+
+    const difference_type s = 2;
+    const value_type      v = 2;
+    pointer         b = x.allocate(s);
+    pointer         b2 = x.allocate(s);
+
+
+
+    //ASSERT_EQ(x.view(0), sizeof(x)-8);
+    //ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
+}
 
 
 
@@ -246,6 +313,8 @@ TYPED_TEST(OurAllocator, CheckDefaultConstructors) {
     ASSERT_EQ(x.view(0), sizeof(x)-8);
     ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
 }
+
+
 
 //Checks that 1 T is allocated, then 2T's are allocated to the free space that is left
 //then 3T's are allocated to the free space that is left
@@ -448,7 +517,7 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
 
     //BEGINNING OF DEALOCATION
 
-
+    // cout << "deallocate1" <<endl;
     x.deallocate(b, s);
 
     SentinelS = reinterpret_cast<int*>(b);
@@ -460,21 +529,31 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
     second = first + frontSentinelS;
     firstIndex = first - &x.a[0] - 4;
     secondIndex = second - &x.a[0];
+    // cout << "********* sentinel ******** " << x.view(firstIndex) << endl;
+    // cout << "********* sentinel ******** " << x.view(secondIndex) << endl;
 
-    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+   ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    
+    // cout << "deallocate2" <<endl;
 
     x.deallocate(b2, s2);
+
 
     SentinelS = reinterpret_cast<int*>(b2);
     frontSentinelS = *(--SentinelS);
     // frontSentinelS = -frontSentinelS;
+    // cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
 
     first = reinterpret_cast<char*>(b2);
     second = first + frontSentinelS;
     firstIndex = first - &x.a[0] - 4;
     secondIndex = second - &x.a[0];
 
-    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    // cout << "FIRST INDEX IS : " << firstIndex << endl;
+    // cout << "Second INDEX IS : " << secondIndex << endl;
+    // cout << "ORIGINALLY GETTING " << x.view(firstIndex) << " "  <<x.view(secondIndex) << endl;
+
+    ASSERT_EQ(x.view(secondIndex), x.view(secondIndex - x.view(secondIndex) -4));
 
     // ASSERT_EQ(x.view(b2))
 
@@ -482,6 +561,8 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
 
     SentinelS = reinterpret_cast<int*>(b3);
     frontSentinelS = *(--SentinelS);
+        // cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
+
     // frontSentinelS = -frontSentinelS;
 
     first = reinterpret_cast<char*>(b3);
@@ -489,9 +570,57 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
     firstIndex = first - &x.a[0] - 4;
     secondIndex = second - &x.a[0];
 
-    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    //     cout << "FIRST INDEX IS : " << firstIndex << endl;
+    // cout << "Second INDEX IS : " << secondIndex << endl;
+    // cout << "view(secondIndex) " << x.view(secondIndex)<< endl;
+
+    ASSERT_EQ(x.view(secondIndex - x.view(secondIndex) -4), x.view(4+x.view(secondIndex - x.view(secondIndex) -4)));
 
 }
+
+
+    // ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    
+    // cout << "deallocate2" <<endl;
+
+    // x.deallocate(b2, s2);
+
+
+    // SentinelS = reinterpret_cast<int*>(b2);
+    // frontSentinelS = *(--SentinelS);
+    // // frontSentinelS = -frontSentinelS;
+    // cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
+
+    // first = reinterpret_cast<char*>(b2);
+    // second = first + frontSentinelS;
+    // firstIndex = first - &x.a[0] - 4;
+    // secondIndex = second - &x.a[0];
+
+    // cout << "FIRST INDEX IS : " << firstIndex << endl;
+    // cout << "Second INDEX IS : " << secondIndex << endl;
+
+    // ASSERT_EQ(x.view(secondIndex), x.view(secondIndex - x.view(secondIndex) -4));
+
+    // // ASSERT_EQ(x.view(b2))
+
+    // x.deallocate(b3, s3);
+
+    // SentinelS = reinterpret_cast<int*>(b3);
+    // frontSentinelS = *(--SentinelS);
+    //     cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
+
+    // // frontSentinelS = -frontSentinelS;
+
+    // first = reinterpret_cast<char*>(b3);
+    // second = first + frontSentinelS;
+    // firstIndex = first - &x.a[0] - 4;
+    // secondIndex = second - &x.a[0];
+
+    //     cout << "FIRST INDEX IS : " << firstIndex << endl;
+    // cout << "Second INDEX IS : " << secondIndex << endl;
+    // cout << "view(secondIndex) " << x.view(secondIndex)<< endl;
+
+    // ASSERT_EQ(x.view(secondIndex), x.view(secondIndex - x.view(secondIndex) -4));
 
 TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     typedef typename TestFixture::allocator_type  allocator_type;
@@ -548,7 +677,7 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     freeSpace += x.view(firstIndex) - 8;
     ASSERT_EQ(x.view(secondIndex+4), freeSpace);
 
-    
+
     x.deallocate(b, s);
 
     SentinelS = reinterpret_cast<int*>(b);
@@ -590,7 +719,7 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     firstIndex = first - &x.a[0] - 4;
     secondIndex = second - &x.a[0];
 
-    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    ASSERT_EQ(x.view(secondIndex), x.view(secondIndex));
 
     // ASSERT_EQ(x.view(b2))
 
@@ -604,8 +733,12 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     second = first + frontSentinelS;
     firstIndex = first - &x.a[0] - 4;
     secondIndex = second - &x.a[0];
+    // cout << " FIRST INDEX IS " << firstIndex << endl;
+    // cout << "view(firstIndex) is " << x.view(firstIndex) << endl;
+    // cout << " SECOND INDEX IS " << secondIndex << endl;
+    // cout << "view(secondIndex) is " << x.view(secondIndex) << endl;
 
-    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+    ASSERT_EQ(x.view(secondIndex - x.view(secondIndex) -4), x.view(4+x.view(secondIndex - x.view(secondIndex) -4)));
 
 }
 
@@ -641,5 +774,49 @@ TYPED_TEST(OurAllocator2, AllocateEntireArray) {
     
     //Checking that the first sentinel is allocating the currect amount
     ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+}
+
+    TYPED_TEST(OurAllocator2, Allocate_Then_Deallocate_Entire_Array) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+
+    allocator_type x;
+    const difference_type s = 30;
+    const value_type      v = 2;
+    pointer         b = x.allocate(s);
+
+    ASSERT_TRUE(b);
+
+    int freeSpace = sizeof(x)-8;
+    //freeSpace -= (sizeof(v) * s + 8);
+
+    int* SentinelS = reinterpret_cast<int*>(b);
+    int frontSentinelS = *(--SentinelS);
+    frontSentinelS = -frontSentinelS;
+    // cout << frontSentinelS << endl;
+
+    char* first = reinterpret_cast<char*>(b);
+    char *second = first + frontSentinelS;
+    int firstIndex = first - &x.a[0] - 4;
+    int secondIndex = second - &x.a[0];
+    
+    //Checking that the first sentinel is allocating the currect amount
+    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+
+    x.deallocate(b, s);
+
+    SentinelS = reinterpret_cast<int*>(b);
+    frontSentinelS = *(--SentinelS);
+    // frontSentinelS = -frontSentinelS;
+
+    first = reinterpret_cast<char*>(b);
+    second = first + frontSentinelS;
+    firstIndex = first - &x.a[0] - 4;
+    secondIndex = second - &x.a[0];
+    // cout << "First Index" << x.view(firstIndex) << endl;
+    // cout <<  "Second index " << secondIndex << endl;
+    ASSERT_EQ(x.view(firstIndex), x.view(x.view(firstIndex)+4));
 
 }
