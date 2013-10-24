@@ -137,9 +137,10 @@ class Allocator {
             int allBytesNeeded = sizeof(T)*n + 8;
             // cout << n << endl;
             pointer p;
-
+            // cout << currentSentinel << endl;
+            // if(allBytesNeeded == currentSentinel)
             // We need to iterate over the array. Stop when we find a free block.
-            while(currentPosition < N-4 && !freeBlock)
+            while(currentPosition <= N-4 && !freeBlock)
             {
                 currentSentinel = view(currentPosition);
                 // cout << "current Sentinel at beginning " << currentSentinel << endl;
@@ -184,8 +185,9 @@ class Allocator {
                     assert(valid());
                     return p;
                 }
-                else if(currentSentinel >= allBytesNeeded)
+                else if(currentSentinel >= allBytesNeeded-8)
                 {
+
                     // cout << " CURRENT SENTINEl2 " << currentSentinel << endl;
 
                     // cout <<  "currentPosition IS2 " << currentPosition << endl;

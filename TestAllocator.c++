@@ -63,6 +63,12 @@ struct OurAllocator : testing::Test {
     typedef typename B::difference_type difference_type;
     typedef typename B::pointer         pointer;};
 
+template <typename C>
+struct OurAllocator2 : testing::Test {
+    typedef          C                  allocator_type;
+    typedef typename C::value_type      value_type;
+    typedef typename C::difference_type difference_type;
+    typedef typename C::pointer         pointer;};
 
 typedef testing::Types<
             std::allocator<int>,
@@ -79,6 +85,13 @@ typedef testing::Types<
             Allocator<long, 300>,
             Allocator<char, 300> >
         our_types;
+
+typedef testing::Types<
+            Allocator<int, 128>,
+            Allocator<double, 248>,
+            Allocator<long, 248>,
+            Allocator<char, 38> >
+        FillArray;
 
 
 TYPED_TEST_CASE(TestAllocator, my_types);
@@ -213,6 +226,7 @@ TYPED_TEST(OurAllocator, OneDoubleSentinel) {
     }
  }
 
+
 TYPED_TEST(OurAllocator, CheckDefaultConstructors) {
     typedef typename TestFixture::allocator_type  allocator_type;
     typedef typename TestFixture::value_type      value_type;
@@ -320,7 +334,6 @@ TYPED_TEST(OurAllocator, AllocateTooMuch) {
     //make sure that the pointer is null
     ASSERT_FALSE(b);
 }
-
 
 TYPED_TEST(OurAllocator, CheckDeallocate_1) {
     typedef typename TestFixture::allocator_type  allocator_type;
@@ -480,3 +493,35 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
 
 }
 
+TYPED_TEST_CASE(OurAllocator2, FillArray);
+
+TYPED_TEST(OurAllocator2, AllocateEntireArray) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+
+    allocator_type x;
+    const difference_type s = 30;
+    const value_type      v = 2;
+    pointer         b = x.allocate(s);
+
+    ASSERT_TRUE(b);
+
+    int freeSpace = sizeof(x)-8;
+    //freeSpace -= (sizeof(v) * s + 8);
+
+    int* SentinelS = reinterpret_cast<int*>(b);
+    int frontSentinelS = *(--SentinelS);
+    frontSentinelS = -frontSentinelS;
+    // cout << frontSentinelS << endl;
+
+    char* first = reinterpret_cast<char*>(b);
+    char *second = first + frontSentinelS;
+    int firstIndex = first - &x.a[0] - 4;
+    int secondIndex = second - &x.a[0];
+    
+    //Checking that the first sentinel is allocating the currect amount
+    ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
+
+}
