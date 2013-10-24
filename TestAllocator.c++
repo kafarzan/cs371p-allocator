@@ -68,13 +68,6 @@ struct OurAllocator2 : testing::Test {
     typedef typename C::difference_type difference_type;
     typedef typename C::pointer         pointer;};
 
-template <typename D>
-struct SmallTest : testing::Test {
-    typedef          D                  allocator_type;
-    typedef typename D::value_type      value_type;
-    typedef typename D::difference_type difference_type;
-    typedef typename D::pointer         pointer;};
-
 typedef testing::Types<
             std::allocator<int>,
             std::allocator<double>,
@@ -82,9 +75,7 @@ typedef testing::Types<
             Allocator<double, 100> >
         my_types;
 // Two things on each block
-typedef testing:: Types<
-    Allocator<char, 20>>
-small_types;
+
 typedef testing::Types<
             Allocator<int, 100>,
             Allocator<double, 100>,
@@ -164,8 +155,10 @@ TYPED_TEST(OurAllocator, Sentinels) {
     const difference_type s = 2;
     const value_type      v = 2;
     pointer         b = x.allocate(s);
+    int size = -x.view(0) / s;
 
-    int frontSentinel = -(sizeof(v) * s);
+
+    int frontSentinel = -(size * s);
     int* realSentinelPoint = reinterpret_cast<int*>(b);
     int realSentinel = *(--realSentinelPoint);
     ASSERT_EQ(realSentinel, frontSentinel);
@@ -196,12 +189,14 @@ TYPED_TEST(OurAllocator, OneDoubleSentinel) {
     const difference_type s = 1;
     const value_type      v = 2;
     pointer         b = x.allocate(s);
+    int size = -x.view(0) / s;
+
     // cout << sizeof(x) << " Total Array bytes" << endl;
     // cout << sizeof(v) << " Type bytes" << endl;
     // cout << s << " types put in" << endl;
     // cout << sizeof(*b) << " pointing to type" << endl;
     
-    int frontSentinel = -sizeof(v) * s;
+    int frontSentinel = -size * s;
     int* realSentinelPoint = reinterpret_cast<int*>(b);
     int realSentinel = *(--realSentinelPoint);
     
@@ -240,12 +235,14 @@ TYPED_TEST(OurAllocator, CheckAllocate) {
     const value_type      v3 = 2;
     int full = x.view(0);
     pointer         b = x.allocate(s);
+    int size = -x.view(0) / s;
 
+    // cout << "  SIZE OF IS " << sizeof(value_type) << endl;
     int pos = 0;
-    ASSERT_EQ(-s*sizeof(value_type), x.view(pos));
+    ASSERT_EQ(-s*size, x.view(pos));
     // Go to next sentinel set
     int spaceAllocated = -x.view(pos);
-    pos += s*sizeof(value_type) + 8;
+    pos += s*size + 8;
 
     cout << "pos " << pos << endl;
     // Gets sentinel of next free space;
@@ -254,23 +251,23 @@ TYPED_TEST(OurAllocator, CheckAllocate) {
     pointer         b2 = x.allocate(s2);
     ASSERT_TRUE(b2);
     pos = 0;
-    ASSERT_EQ(-s*sizeof(value_type), x.view(pos));
-    pos += s*sizeof(value_type) + 8; 
-    ASSERT_EQ(-s2*sizeof(value_type), x.view(pos));
-    pos += s2*sizeof(value_type) + 8; 
-   ASSERT_EQ(full - s*sizeof(value_type) - s2*sizeof(value_type) -16, x.view(pos));
+    ASSERT_EQ(-s*size, x.view(pos));
+    pos += s*size + 8; 
+    ASSERT_EQ(-s2*size, x.view(pos));
+    pos += s2*size + 8; 
+   ASSERT_EQ(full - s*size - s2*size -16, x.view(pos));
 
     pointer         b3 = x.allocate(s3);
     ASSERT_TRUE(b3);
 
     pos = 0;
-    ASSERT_EQ(-s*sizeof(value_type), x.view(pos));
-    pos += s*sizeof(value_type) + 8; 
-    ASSERT_EQ(-s2*sizeof(value_type), x.view(pos));
-    pos += s2*sizeof(value_type) + 8; 
-    ASSERT_EQ(-s3*sizeof(value_type), x.view(pos));
-    pos += s3*sizeof(value_type) + 8; 
-   ASSERT_EQ(full - s*sizeof(value_type) - s2*sizeof(value_type) - s3*sizeof(value_type) - 24, x.view(pos));
+    ASSERT_EQ(-s*size, x.view(pos));
+    pos += s*size + 8; 
+    ASSERT_EQ(-s2*size, x.view(pos));
+    pos += s2*size + 8; 
+    ASSERT_EQ(-s3*size, x.view(pos));
+    pos += s3*size + 8; 
+   ASSERT_EQ(full - s*size - s2*size - s3*size - 24, x.view(pos));
 
 }
 
@@ -303,6 +300,7 @@ TYPED_TEST(OurAllocator, CheckDeallocate_1) {
     const value_type      v = 1;
     int freeSpace = x.view(0);
     pointer         b = x.allocate(s);
+
     //make sure that the pointer is not null
     ASSERT_TRUE(b);
 
@@ -348,13 +346,15 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
 
     //All ALLOCATION IS SAME FROM CHECK ALLOCATE TEST
     pointer         b = x.allocate(s);
+    int size = -x.view(0) / s;
+
     ASSERT_TRUE(b);
     char* x1 = reinterpret_cast<char*>(&(x.view(0)));
     int index = reinterpret_cast<char*>(b)-x1 - 4;
     int secondindex = -x.view(index) + 4 + index;
     ASSERT_EQ(x.view(index), x.view(secondindex));
     //Checking that the first sentinel is allocating only 1
-    ASSERT_EQ(x.view(index), -(sizeof(v)));
+    ASSERT_EQ(x.view(index), -(size));
     
     
     pointer         b2 = x.allocate(s2);
@@ -365,7 +365,7 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
     secondindex = -x.view(index) + 4 + index;
     ASSERT_EQ(x.view(index), x.view(secondindex));
     //Checking that the first sentinel is allocating only 3
-    ASSERT_EQ(x.view(index), -(sizeof(v)*s2));
+    ASSERT_EQ(x.view(index), -(size*s2));
 
 
     pointer         b3 = x.allocate(s3);
@@ -375,7 +375,7 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
     secondindex = -x.view(index) + 4 + index;
     ASSERT_EQ(x.view(index), x.view(secondindex));
     //Checking that the first sentinel is allocating only 2
-    ASSERT_EQ(x.view(index), -(sizeof(v)*s3));
+    ASSERT_EQ(x.view(index), -(size*s3));
 
 
     //BEGINNING OF DEALOCATION
@@ -418,6 +418,8 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     int freeSpace = x.view(0);
     //All ALLOCATION IS SAME FROM CHECK ALLOCATE TEST
     pointer         b = x.allocate(s);
+    int size = -x.view(0) / s;
+
     ASSERT_TRUE(b);
 
     //freeSpace -= (sizeof(v) * s + 8);
@@ -427,7 +429,7 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     // Check sentinels equal
     ASSERT_EQ(x.view(index), x.view(secondindex));
     //Checking sentinel is correct size
-    ASSERT_EQ(x.view(index), -(sizeof(v)));
+    ASSERT_EQ(x.view(index), -(size));
     freeSpace += x.view(index) - 8;
     //Check free space is correct size
     ASSERT_EQ(x.view(secondindex+4), freeSpace);
@@ -441,7 +443,7 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     // Check sentinels equal
     ASSERT_EQ(x.view(index), x.view(secondindex));
     // Check sentinels are correct size
-    ASSERT_EQ(x.view(index), -(sizeof(v2))*s2);
+    ASSERT_EQ(x.view(index), -(size)*s2);
     freeSpace += x.view(index) - 8;
     // Check free space is correct size
     ASSERT_EQ(x.view(secondindex+4), freeSpace);
@@ -464,7 +466,7 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     // Check sentinels equal
     ASSERT_EQ(x.view(index), x.view(secondindex));
     // Check sentinels are correct size
-    ASSERT_EQ(x.view(index), -(sizeof(v3))*s3);
+    ASSERT_EQ(x.view(index), -(size)*s3);
     freeSpace += x.view(index) - 8;
     // Check free space is correct size
     ASSERT_EQ(x.view(secondindex+4), freeSpace);
@@ -539,9 +541,6 @@ TYPED_TEST(OurAllocator2, AllocateEntireArray) {
 }
 
 
-
-
-
 TYPED_TEST(OurAllocator2, Allocate_Then_Deallocate_Entire_Array) {
     typedef typename TestFixture::allocator_type  allocator_type;
     typedef typename TestFixture::value_type      value_type;
@@ -563,6 +562,15 @@ TYPED_TEST(OurAllocator2, Allocate_Then_Deallocate_Entire_Array) {
     index = reinterpret_cast<char*>(b)-x1 - 4;
     secondindex = x.view(index) + 4;
     ASSERT_EQ(x.view(index), x.view(secondindex));
+
+}
+
+TYPED_TEST(OurAllocator2, Valid1) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
+    allocator_type x;
 
 }
 
