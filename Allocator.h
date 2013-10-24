@@ -294,7 +294,7 @@ class Allocator {
                 // cout << "FirstSentinel " << view(firstIndex) << endl;
                 int nextFirstSentinel = view(secondIndex + 4);
                // cout << "nextFirst Sentinel: " << nextFirstSentinel << endl;
-                int nextSecondIndex = secondIndex + 4 + nextFirstSentinel;
+                int nextSecondIndex = secondIndex + 8 + nextFirstSentinel;
                 //cout << "nextSecondIndex " << nextSecondIndex << endl;
                 view(nextSecondIndex) = nextFirstSentinel + frontSentinel + 8;
                 // cout << "next second sentinel " << view(nextSecondIndex) << endl;
