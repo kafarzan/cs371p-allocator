@@ -173,8 +173,6 @@ class Allocator {
             int currentPosition = 0;
             int currentSentinel = view(currentPosition); // sentinel at current position
             bool freeBlock = false;
-            int frontSentinel = sizeof(T)*n;
-            int backSentinel = sizeof(T)*n;
             int allBytesNeeded = sizeof(T)*n + 8;
             pointer p;
 

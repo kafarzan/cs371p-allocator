@@ -183,34 +183,6 @@ TYPED_TEST(TestAllocator, Ten) {
 
 
 
-TYPED_TEST_CASE(SmallTest, small_types);
-
-
-TYPED_TEST(SmallTest, CheckValues) {
-    typedef typename TestFixture::allocator_type  allocator_type;
-    typedef typename TestFixture::value_type      value_type;
-    typedef typename TestFixture::difference_type difference_type;
-    typedef typename TestFixture::pointer         pointer;
-
-    allocator_type x;
-    // int frontSentinel = -sizeof(v) * s;
-    // int* realSentinelPoint = reinterpret_cast<int*>(b);
-    // int realSentinel = *(--realSentinelPoint);
-
-    const difference_type s = 2;
-    const value_type      v = 2;
-    pointer         b = x.allocate(s);
-    pointer         b2 = x.allocate(s);
-
-
-
-    //ASSERT_EQ(x.view(0), sizeof(x)-8);
-    //ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
-}
-
-
-
-
 TYPED_TEST_CASE(OurAllocator, our_types);
 
 
@@ -231,7 +203,7 @@ TYPED_TEST(OurAllocator, Sentinels) {
     // cout << sizeof(v) << " Type bytes" << endl;
     // cout << s << " types put in" << endl;
 
-    int frontSentinel = -sizeof(v) * s;
+    int frontSentinel = -(sizeof(v) * s);
     int* realSentinelPoint = reinterpret_cast<int*>(b);
     int realSentinel = *(--realSentinelPoint);
     //cout << "front: " << frontSentinel << " real " << realSentinel << endl;
@@ -292,29 +264,6 @@ TYPED_TEST(OurAllocator, OneDoubleSentinel) {
             throw;}
     }
  }
-
-
-TYPED_TEST(OurAllocator, CheckDefaultConstructors) {
-    typedef typename TestFixture::allocator_type  allocator_type;
-    typedef typename TestFixture::value_type      value_type;
-    typedef typename TestFixture::difference_type difference_type;
-    typedef typename TestFixture::pointer         pointer;
-
-    allocator_type x;
-    // int frontSentinel = -sizeof(v) * s;
-    // int* realSentinelPoint = reinterpret_cast<int*>(b);
-    // int realSentinel = *(--realSentinelPoint);
-    const int allocatorSize = x.view(0);
-
-    const difference_type s = 1;
-    const value_type      v = 2;
-    // pointer         b = x.allocate(s);
-
-    ASSERT_EQ(x.view(0), sizeof(x)-8);
-    ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
-}
-
-
 
 //Checks that 1 T is allocated, then 2T's are allocated to the free space that is left
 //then 3T's are allocated to the free space that is left
@@ -397,7 +346,7 @@ TYPED_TEST(OurAllocator, AllocateTooMuch) {
     allocator_type x;
     //Allocate something that will not fit into the allocator
     const difference_type s = 10000000;
-    const value_type      v = 1;
+    // const value_type      v = 1;
 
     pointer         b = x.allocate(s);
     //make sure that the pointer is null
@@ -754,12 +703,9 @@ TYPED_TEST(OurAllocator2, AllocateEntireArray) {
 
     allocator_type x;
     const difference_type s = 30;
-    const value_type      v = 2;
     pointer         b = x.allocate(s);
 
     ASSERT_TRUE(b);
-
-    int freeSpace = sizeof(x)-8;
     //freeSpace -= (sizeof(v) * s + 8);
 
     int* SentinelS = reinterpret_cast<int*>(b);
@@ -784,12 +730,9 @@ TYPED_TEST(OurAllocator2, AllocateEntireArray) {
 
     allocator_type x;
     const difference_type s = 30;
-    const value_type      v = 2;
     pointer         b = x.allocate(s);
 
     ASSERT_TRUE(b);
-
-    int freeSpace = sizeof(x)-8;
     //freeSpace -= (sizeof(v) * s + 8);
 
     int* SentinelS = reinterpret_cast<int*>(b);
