@@ -68,6 +68,14 @@ struct OurAllocator2 : testing::Test {
     typedef typename C::difference_type difference_type;
     typedef typename C::pointer         pointer;};
 
+template <typename D>
+struct TestValid : testing::Test {
+    typedef          D                  allocator_type;
+    typedef typename D::value_type      value_type;
+    typedef typename D::difference_type difference_type;
+    typedef typename D::pointer         pointer;};
+
+
 typedef testing::Types<
             std::allocator<int>,
             std::allocator<double>,
@@ -91,6 +99,11 @@ typedef testing::Types<
             Allocator<long, 248>,
             Allocator<char, 38> >
         FillArray;
+
+
+typedef testing::Types<
+            Allocator<int, 120> >
+        ValidTests;
 
 
 TYPED_TEST_CASE(TestAllocator, my_types);
@@ -244,9 +257,9 @@ TYPED_TEST(OurAllocator, CheckAllocate) {
     int spaceAllocated = -x.view(pos);
     pos += s*size + 8;
 
-    cout << "pos " << pos << endl;
+    // cout << "pos " << pos << endl;
     // Gets sentinel of next free space;
-    cout << "view at pos " << x.view(pos) << endl;
+    // cout << "view at pos " << x.view(pos) << endl;
  
     pointer         b2 = x.allocate(s2);
     ASSERT_TRUE(b2);
@@ -565,14 +578,67 @@ TYPED_TEST(OurAllocator2, Allocate_Then_Deallocate_Entire_Array) {
 
 }
 
-TYPED_TEST(OurAllocator2, Valid1) {
+TYPED_TEST_CASE(TestValid, ValidTests);
+
+
+TYPED_TEST(TestValid, Valid1) {
     typedef typename TestFixture::allocator_type  allocator_type;
     typedef typename TestFixture::value_type      value_type;
     typedef typename TestFixture::difference_type difference_type;
     typedef typename TestFixture::pointer         pointer;
     allocator_type x;
 
+    ASSERT_EQ(x.view(0), x.view(x.view(0)+4));
+
 }
+
+
+// TYPED_TEST(TestValid, Valid5) {
+//     typedef typename TestFixture::allocator_type  allocator_type;
+//     typedef typename TestFixture::value_type      value_type;
+//     typedef typename TestFixture::difference_type difference_type;
+//     typedef typename TestFixture::pointer         pointer;
+//     allocator_type x;
+
+//     ASSERT_EQ(x.view(0), x.view(x.view(0)+4));
+
+//     x.view(0) = -8;
+//     x.view(12) = -8;
+//     x.view(16) = -12;
+//     x.view(30) = -12;
+//     x.view(34) = 76;
+//     x.view(116) = 76;
+
+//     cout << &x.a[0] << endl;
+
+//     x.a[0] = -8;
+//     x.a[12] = -8;
+//     x.a[16] = -12;
+//     x.a[30] = -12;
+//     x.a[34] = 76;
+//     x.a[116] = 76;
+//     ASSERT_TRUE(x.valid());
+
+// }
+       // const int& = x.view(0)
+    //     x.view(0) = -8;
+    // &x.a[0] = reinterpret_cast<char*>(&(x.view(0)));
+    // x.view(12) = -8;
+    // &x.a[12] = reinterpret_cast<char*>(&(x.view(12)));
+    // x.view(16) = -8;
+    // &x.a[16] = reinterpret_cast<char*>(&(x.view(16)));
+    // x.view(30) = -8;
+    // &x.a[30] = reinterpret_cast<char*>(&(x.view(30)));
+    // x.view(34) = -8;
+    // &x.a[34] = reinterpret_cast<char*>(&(x.view(34)));
+    // x.view(116) = -8;
+    // &x.a[116] = reinterpret_cast<char*>(&(x.view(116)));
+
+
+
+
+
+
 
     // char* x1 = reinterpret_cast<char*>(&(x.view(0)));
     // int index = reinterpret_cast<char*>(b)-x1;
