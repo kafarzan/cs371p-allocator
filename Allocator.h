@@ -255,6 +255,7 @@ class Allocator {
                 }
             }
             assert(!freeBlock);
+            // throw std::bad_alloc p;
             return NULL;}           
 
         // ---------
