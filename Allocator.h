@@ -67,18 +67,20 @@ class Allocator {
         /**
          * O(1) in space
          * O(n) in time
-         * <your documentation>
+         * \return if the allocator is valid
          */
         bool valid () const {
-            cout << "****************************************************************************************" << endl;
+            int totalSpace = 0;
+            int totalNodes = 0;
+            // cout << "****************************************************************************************" << endl;
             int i = 0;
             while(i < N)
             {
-                cout << view(i) << " and ";
-                // cout << view(i) << " and " << view(view(i) + 4) << endl;
+                // cout << view(i) << " and ";
                 bool negative = false;
                 int temp = view(i);
                 // cout << "TEMP IS : " << temp << endl;
+                //if negative check using positives
                 if( temp < 0)
                 {
                     // cout << "enter";
@@ -86,38 +88,53 @@ class Allocator {
                     temp = -temp;
                     // cout << temp << endl;
                 } 
+                totalSpace+=temp;
                 // cout  << view(i+temp+4) << " " ;
                 int temp2 = view(i+temp+4);
-                cout << view(i+temp+4) << " ";
+                // cout << view(i+temp+4) << " ";
                 // cout << "TEMP2 IS : " << temp2 << endl;
                 // cout << "VIEW I + 4 " << view(i+temp + 8)<<endl;
 
+                //if negative check it using positives
                 if(temp2 < 0)
                 {
                     temp2 = -temp2;
                 }
                 if( temp != temp2)
                 {
+                    // cout << temp << " and " << temp2<< endl;
+                    // cout << "BREAK" << endl;
+
                      // cout << "break 1" << endl;
                     return false;
                 }
+
+                //if positive and either adjacent block is positive, it is invalid
                 else if(!negative && view(i+temp+8) > 0 && i+temp+8 != N)
                 {
+                // cout << "BREAK" << endl;
 
                     // cout << "next value is " << view(i+temp+8) <<  " break 2" << endl;
                     return false;
                 }
                 i+=temp+8;
+                totalNodes += 2;
                 // cout << "check i "<<  i << endl; 
             }
-            cout << endl;
-            cout << "end of valid" << endl;
+            if(totalSpace + (totalNodes*4) != N)
+            {
+                // cout << "BREAK" << endl;
+                return false;
+            }
+            // cout << endl;
+            // cout << "end of valid" << endl;
 
             return true;}
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \param takes in an int
+         * \return returns the address in the allocator 
          */
         int& view (int i) {
             return *reinterpret_cast<int*>(&a[i]);}
@@ -130,7 +147,8 @@ class Allocator {
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \fn Allocator
+         * \brief This is the default contstructor
          */
          //default constructor
         Allocator () {
@@ -159,7 +177,9 @@ class Allocator {
         /**
          * O(1) in space
          * O(n) in time
-         * <your documentation>
+         * \param how many types you are putting in the allocator
+         * \return pointer to the beginning of the allocator
+         * \brief if a bad pointer returns null
          * after allocation there must be enough space left for a valid block
          * the smallest allowable block is sizeof(T) + (2 * sizeof(int))
          * choose the first block that fits
@@ -211,6 +231,7 @@ class Allocator {
                     assert(valid());
                     return p;
                 }
+                //if not enough room for 1 type and 2 sentinels give entire block
                 else if(currentSentinel >= allBytesNeeded)
                 {
 
@@ -230,6 +251,7 @@ class Allocator {
                     return p;
 
                 }
+                //if exact size give the entire block
                 else if(currentSentinel == allBytesNeeded -8)
                 {
                     view(0) = -(view(0));
@@ -237,6 +259,7 @@ class Allocator {
                     p = reinterpret_cast<pointer>(&view(currentPosition+4));
                     return p;
                 }
+                //move to the next block and see if free
                 else
                 {
                     if(currentSentinel < 0)
@@ -265,7 +288,8 @@ class Allocator {
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \param p is the pointer to the beginning of the block
+         * \param v is what you are putting in that space
          */
         void construct (pointer p, const_reference v) {
             new (p) T(v);                               // this is correct and exempt
@@ -278,7 +302,8 @@ class Allocator {
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \param p is the pointer to the beginning of the block
+         * \details size_type is the type in the block of memory
          * after deallocation adjacent free blocks must be coalesced
          */
         void deallocate (pointer p, size_type) {
@@ -346,7 +371,7 @@ class Allocator {
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \param p is the pointer to the block of memory to free
          */
         void destroy (pointer p) {
             p->~T();               // this is correct
@@ -355,7 +380,8 @@ class Allocator {
         /**
          * O(1) in space
          * O(1) in time
-         * <your documentation>
+         * \param i is the index to look at
+         * \return the address of that index
          */
         const int& view (int i) const {
             return *reinterpret_cast<const int*>(&a[i]);}};
