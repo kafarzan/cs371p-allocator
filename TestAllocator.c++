@@ -433,7 +433,7 @@ TYPED_TEST(OurAllocator, CheckDeallocate) {
     freeSpace = x.view(0);
     //Begin Deallocating
     x.deallocate(b,s);
-    cout << x.view(0) + 4 << endl;
+    // cout << x.view(0) + 4 << endl;
     ASSERT_EQ(x.view(0),x.view(x.view(0)+4));
 
 }
