@@ -783,3 +783,6 @@ TYPED_TEST(OurAllocator2, AllocateEntireArray) {
     ASSERT_EQ(x.view(firstIndex), x.view(x.view(firstIndex)+4));
 
 }
+
+    // char* x1 = reinterpret_cast<char*>(&(x.view(0)));
+    // int index = reinterpret_cast<char*>(b)-x1;
