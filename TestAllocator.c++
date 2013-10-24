@@ -213,25 +213,25 @@ TYPED_TEST(OurAllocator, OneDoubleSentinel) {
     }
  }
 
-// TYPED_TEST(OurAllocator, CheckDefaultConstructors) {
-//     typedef typename TestFixture::allocator_type  allocator_type;
-//     typedef typename TestFixture::value_type      value_type;
-//     typedef typename TestFixture::difference_type difference_type;
-//     typedef typename TestFixture::pointer         pointer;
+TYPED_TEST(OurAllocator, CheckDefaultConstructors) {
+    typedef typename TestFixture::allocator_type  allocator_type;
+    typedef typename TestFixture::value_type      value_type;
+    typedef typename TestFixture::difference_type difference_type;
+    typedef typename TestFixture::pointer         pointer;
 
-//     allocator_type x;
-//     // int frontSentinel = -sizeof(v) * s;
-//     // int* realSentinelPoint = reinterpret_cast<int*>(b);
-//     // int realSentinel = *(--realSentinelPoint);
-//     const int allocatorSize = x.view(0);
+    allocator_type x;
+    // int frontSentinel = -sizeof(v) * s;
+    // int* realSentinelPoint = reinterpret_cast<int*>(b);
+    // int realSentinel = *(--realSentinelPoint);
+    const int allocatorSize = x.view(0);
 
-//     const difference_type s = 1;
-//     const value_type      v = 2;
-//     // pointer         b = x.allocate(s);
+    const difference_type s = 1;
+    const value_type      v = 2;
+    // pointer         b = x.allocate(s);
 
-//     ASSERT_EQ(x.view(0), sizeof(x)-8);
-//     ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
-// }
+    ASSERT_EQ(x.view(0), sizeof(x)-8);
+    ASSERT_EQ(x.view(sizeof(x)-4), sizeof(x)-8);
+}
 
 //Checks that 1 T is allocated, then 2T's are allocated to the free space that is left
 //then 3T's are allocated to the free space that is left
