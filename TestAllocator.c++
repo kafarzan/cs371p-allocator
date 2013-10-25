@@ -203,17 +203,11 @@ TYPED_TEST(OurAllocator, OneDoubleSentinel) {
     const value_type      v = 2;
     pointer         b = x.allocate(s);
     int size = -x.view(0) / s;
-
-    // cout << sizeof(x) << " Total Array bytes" << endl;
-    // cout << sizeof(v) << " Type bytes" << endl;
-    // cout << s << " types put in" << endl;
-    // cout << sizeof(*b) << " pointing to type" << endl;
     
     int frontSentinel = -size * s;
     int* realSentinelPoint = reinterpret_cast<int*>(b);
     int realSentinel = *(--realSentinelPoint);
     
-    //cout << "front: " << frontSentinel << " real " << realSentinel << endl;
     ASSERT_EQ(realSentinel, frontSentinel);
     if (b != 0) {
         pointer e = b + s;
@@ -250,17 +244,14 @@ TYPED_TEST(OurAllocator, CheckAllocate) {
     pointer         b = x.allocate(s);
     int size = -x.view(0) / s;
 
-    // cout << "  SIZE OF IS " << sizeof(value_type) << endl;
     int pos = 0;
     ASSERT_EQ(-s*size, x.view(pos));
     // Go to next sentinel set
     int spaceAllocated = -x.view(pos);
     pos += s*size + 8;
 
-    // cout << "pos " << pos << endl;
-    // Gets sentinel of next free space;
-    // cout << "view at pos " << x.view(pos) << endl;
- 
+    // Gets sentinel of next free space
+
     pointer         b2 = x.allocate(s2);
     ASSERT_TRUE(b2);
     pos = 0;
@@ -318,12 +309,9 @@ TYPED_TEST(OurAllocator, CheckDeallocate_1) {
     ASSERT_TRUE(b);
 
 
-    //freeSpace -= (sizeof(v) * s + 8);
-
     int* SentinelS = reinterpret_cast<int*>(b);
     int frontSentinelS = *(--SentinelS);
     frontSentinelS = -frontSentinelS;
-    // cout << frontSentinelS << endl;
 
     char* first = reinterpret_cast<char*>(b);
     char *second = first + frontSentinelS;
@@ -331,14 +319,12 @@ TYPED_TEST(OurAllocator, CheckDeallocate_1) {
     int secondIndex = second - &x.a[0];
     
     //Checking that the first sentinel is allocating the currect amount
-    // ASSERT_EQ(x.view(firstIndex), -(sizeof.(v)));
     freeSpace += x.view(firstIndex) - 8;
     //Checking that the first sentinel of the adjacent free space is of correct size
     ASSERT_EQ(x.view(secondIndex+4), freeSpace);
     freeSpace = x.view(0);
     //Begin Deallocating
     x.deallocate(b,s);
-    // cout << x.view(0) + 4 << endl;
     ASSERT_EQ(x.view(0),x.view(x.view(0)+4));
 
 }
@@ -402,7 +388,6 @@ TYPED_TEST(OurAllocator, CheckDeallocate_2) {
     x1 = reinterpret_cast<char*>(&(x.view(0)));
     index = reinterpret_cast<char*>(b2)-x1 - 4;
     secondindex = x.view(index) + 4 + index;
-    //ASSERT_EQ(x.view(index), x.view(secondindex));
     ASSERT_EQ(x.view(secondindex), x.view(secondindex - x.view(secondindex) -4));
 
     x.deallocate(b3, s3);
@@ -435,7 +420,6 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
 
     ASSERT_TRUE(b);
 
-    //freeSpace -= (sizeof(v) * s + 8);
     char* x1 = reinterpret_cast<char*>(&(x.view(0)));
     int index = reinterpret_cast<char*>(b)-x1 - 4;
     int secondindex = -x.view(index) + 4;
@@ -484,31 +468,10 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     // Check free space is correct size
     ASSERT_EQ(x.view(secondindex+4), freeSpace);
 
-/*
-
-    x.deallocate(b2, s2);
-    x1 = reinterpret_cast<char*>(&(x.view(0)));
-    index = reinterpret_cast<char*>(b2)-x1 - 4;
-    // x.view(index) is now positive since it should be deallocated
-    secondindex = x.view(index) + 4 + index;
-    ASSERT_EQ(x.view(index), x.view(secondindex));
-
-    x.deallocate(b3, s3);
-    x1 = reinterpret_cast<char*>(&(x.view(0)));
-    index = reinterpret_cast<char*>(b)-x1 - 4;
-    // x.view(index) is now positive since it should be deallocated
-    secondindex = x.view(index) + 4 + index;
-    ASSERT_EQ(x.view(index), x.view(secondindex));
-    ASSERT_EQ(x.view(secondindex - x.view(secondindex) -4), x.view(4+x.view(secondindex - x.view(secondindex) -4)));
-
-
-
-*/
     x.deallocate(b2, s2);
 
     int * SentinelS = reinterpret_cast<int*>(b2);
     int frontSentinelS = *(--SentinelS);
-    // frontSentinelS = -frontSentinelS;
 
     char * first = reinterpret_cast<char*>(b2);
     char* second = first + frontSentinelS;
@@ -516,13 +479,11 @@ TYPED_TEST(OurAllocator, Multiple_Allocations_and_Deallocations) {
     int secondIndex = second - &x.a[0];
     ASSERT_EQ(x.view(secondIndex), x.view(secondIndex));
 
-    // ASSERT_EQ(x.view(b2))
 
     x.deallocate(b3, s3);
 
     SentinelS = reinterpret_cast<int*>(b3);
     frontSentinelS = *(--SentinelS);
-    // frontSentinelS = -frontSentinelS;
 
     first = reinterpret_cast<char*>(b3);
     second = first + frontSentinelS;
@@ -587,103 +548,6 @@ TYPED_TEST(TestValid, Valid1) {
     typedef typename TestFixture::difference_type difference_type;
     typedef typename TestFixture::pointer         pointer;
     allocator_type x;
-
     ASSERT_EQ(x.view(0), x.view(x.view(0)+4));
 
 }
-
-
-// TYPED_TEST(TestValid, Valid5) {
-//     typedef typename TestFixture::allocator_type  allocator_type;
-//     typedef typename TestFixture::value_type      value_type;
-//     typedef typename TestFixture::difference_type difference_type;
-//     typedef typename TestFixture::pointer         pointer;
-//     allocator_type x;
-
-//     ASSERT_EQ(x.view(0), x.view(x.view(0)+4));
-
-//     x.view(0) = -8;
-//     x.view(12) = -8;
-//     x.view(16) = -12;
-//     x.view(30) = -12;
-//     x.view(34) = 76;
-//     x.view(116) = 76;
-
-//     cout << &x.a[0] << endl;
-
-//     x.a[0] = -8;
-//     x.a[12] = -8;
-//     x.a[16] = -12;
-//     x.a[30] = -12;
-//     x.a[34] = 76;
-//     x.a[116] = 76;
-//     ASSERT_TRUE(x.valid());
-
-// }
-       // const int& = x.view(0)
-    //     x.view(0) = -8;
-    // &x.a[0] = reinterpret_cast<char*>(&(x.view(0)));
-    // x.view(12) = -8;
-    // &x.a[12] = reinterpret_cast<char*>(&(x.view(12)));
-    // x.view(16) = -8;
-    // &x.a[16] = reinterpret_cast<char*>(&(x.view(16)));
-    // x.view(30) = -8;
-    // &x.a[30] = reinterpret_cast<char*>(&(x.view(30)));
-    // x.view(34) = -8;
-    // &x.a[34] = reinterpret_cast<char*>(&(x.view(34)));
-    // x.view(116) = -8;
-    // &x.a[116] = reinterpret_cast<char*>(&(x.view(116)));
-
-
-
-
-
-
-
-    // char* x1 = reinterpret_cast<char*>(&(x.view(0)));
-    // int index = reinterpret_cast<char*>(b)-x1;
-
-
-
-    // // ASSERT_EQ(x.view(firstIndex), x.view(secondIndex));
-    
-    // cout << "deallocate2" <<endl;
-
-    // x.deallocate(b2, s2);
-
-
-    // SentinelS = reinterpret_cast<int*>(b2);
-    // frontSentinelS = *(--SentinelS);
-    // // frontSentinelS = -frontSentinelS;
-    // cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
-
-    // first = reinterpret_cast<char*>(b2);
-    // second = first + frontSentinelS;
-    // firstIndex = first - &x.a[0] - 4;
-    // secondIndex = second - &x.a[0];
-
-    // cout << "FIRST INDEX IS : " << firstIndex << endl;
-    // cout << "Second INDEX IS : " << secondIndex << endl;
-
-    // ASSERT_EQ(x.view(secondIndex), x.view(secondIndex - x.view(secondIndex) -4));
-
-    // // ASSERT_EQ(x.view(b2))
-
-    // x.deallocate(b3, s3);
-
-    // SentinelS = reinterpret_cast<int*>(b3);
-    // frontSentinelS = *(--SentinelS);
-    //     cout << "FRONT SENTINEL IS : " << frontSentinelS << endl;
-
-    // // frontSentinelS = -frontSentinelS;
-
-    // first = reinterpret_cast<char*>(b3);
-    // second = first + frontSentinelS;
-    // firstIndex = first - &x.a[0] - 4;
-    // secondIndex = second - &x.a[0];
-
-    //     cout << "FIRST INDEX IS : " << firstIndex << endl;
-    // cout << "Second INDEX IS : " << secondIndex << endl;
-    // cout << "view(secondIndex) " << x.view(secondIndex)<< endl;
-
-    // ASSERT_EQ(x.view(secondIndex), x.view(secondIndex - x.view(secondIndex) -4));

@@ -72,28 +72,19 @@ class Allocator {
         bool valid () const {
             int totalSpace = 0;
             int totalNodes = 0;
-            // cout << "****************************************************************************************" << endl;
             int i = 0;
             while(i < N)
             {
-                // cout << view(i) << " and ";
                 bool negative = false;
                 int temp = view(i);
-                // cout << "TEMP IS : " << temp << endl;
                 //if negative check using positives
                 if( temp < 0)
                 {
-                    // cout << "enter";
                     negative = true;
                     temp = -temp;
-                    // cout << temp << endl;
                 } 
                 totalSpace+=temp;
-                // cout  << view(i+temp+4) << " " ;
                 int temp2 = view(i+temp+4);
-                // cout << view(i+temp+4) << " ";
-                // cout << "TEMP2 IS : " << temp2 << endl;
-                // cout << "VIEW I + 4 " << view(i+temp + 8)<<endl;
 
                 //if negative check it using positives
                 if(temp2 < 0)
@@ -102,32 +93,21 @@ class Allocator {
                 }
                 if( temp != temp2)
                 {
-                    // cout << temp << " and " << temp2<< endl;
-                    // cout << "BREAK" << endl;
-
-                     // cout << "break 1" << endl;
                     return false;
                 }
 
                 //if positive and either adjacent block is positive, it is invalid
                 else if(!negative && view(i+temp+8) > 0 && i+temp+8 != N)
                 {
-                // cout << "BREAK" << endl;
-
-                    // cout << "next value is " << view(i+temp+8) <<  " break 2" << endl;
                     return false;
                 }
                 i+=temp+8;
                 totalNodes += 2;
-                // cout << "check i "<<  i << endl; 
             }
             if(totalSpace + (totalNodes*4) != N)
             {
-                // cout << "BREAK" << endl;
                 return false;
             }
-            // cout << endl;
-            // cout << "end of valid" << endl;
 
             return true;}
         /**
@@ -152,7 +132,6 @@ class Allocator {
          */
          //default constructor
         Allocator () {
-             // <your code>
             //what if less than 8
             int freeSpace = N-8;
 
@@ -188,7 +167,6 @@ class Allocator {
             assert(sizeof(T)*n > 0);
 
             int smallestBlock = sizeof(T) + (2 * sizeof(int));
-            // int originalSentinel;
             //current position in the array
             int currentPosition = 0;
             int currentSentinel = view(currentPosition); // sentinel at current position
@@ -204,27 +182,21 @@ class Allocator {
                 if(currentSentinel >= allBytesNeeded && (currentSentinel - allBytesNeeded) >= smallestBlock)
                 {
                     int sentinelVal = -(sizeof(T)*n);
-                    // cout << " Setting this sentinel to: " << sentinelVal << endl;
                     // Indices for new sentinels
                     int newFreeFrontSent = currentPosition + allBytesNeeded;
                     int newFreeBackSent = currentPosition + 4 + (view(currentPosition));
 
                     //calculate and set freespace sentinels
-                    // cout << "currentPosition " << currentPosition << endl;
-                    // cout << view(currentPosition) - allBytesNeeded << endl;
                     view(newFreeFrontSent) = view(currentPosition)  - allBytesNeeded;
-                    // cout << " newFreeBackSent " << newFreeBackSent << endl;
                     view(newFreeBackSent) = view(newFreeFrontSent);
                     // place new sentinels for busy space
 
                     // Sentinels of what we are trying to allocate get updated to actualBytesNeeded (not all)
-                    // cout << " current position " << currentPosition << " and next position " << currentPosition+(sizeof(T)*n)+4<< endl;
                     view(currentPosition) = sentinelVal; 
                     view(currentPosition+(sizeof(T)*n)+4) = sentinelVal;
                     
                     ///get the pointer of the the sentinel
                     p = reinterpret_cast<pointer>(&view(currentPosition+4));
-                    // int* test = reinterpret_cast<int*>(p);
 
                     freeBlock = true;
                     assert(freeBlock);
@@ -236,9 +208,7 @@ class Allocator {
                 {
 
                     int sentinelVal = -currentSentinel;
-                    // cout << " Setting this sentinel to: " << sentinelVal << endl;
                     view(currentPosition) = sentinelVal; // place new sentinels for busy space
-                    // cout << "LOOOOK" << -(currentPosition + view(currentPosition)-4) << endl;
                     view(-(currentPosition + view(currentPosition)-4)) = sentinelVal;
 
 
@@ -310,7 +280,6 @@ class Allocator {
             if(!p)
                 return;
             
-            // cout << "************************************************************************************* " << endl;
             int* frontSentinelPoint = reinterpret_cast<int*>(p);
             int frontSentinel = *(--frontSentinelPoint);
             frontSentinel = -frontSentinel;
@@ -320,47 +289,24 @@ class Allocator {
             int firstIndex = first - &a[0] - 4;
             int secondIndex = second - &a[0];
 
-           // cout << "firstIndex " << firstIndex << endl;
-            // cout  << "FRONT sentinel " << frontSentinel << endl;
             view(firstIndex) = frontSentinel;
             view(secondIndex) = frontSentinel;
-           // cout << "second sentinel:  " << secondIndex<< endl;
-            // bool found = false;
-            // cout << " first index : " << firstIndex << endl;
-            // cout << " view first index - 4 : " << view(firstIndex - 4) << endl;
 
             if(firstIndex > 0 && view(firstIndex - 4) >= 0)
             {
-                // cout << "ENTERD1 " << endl;
-                // cout << "original first index is " << firstIndex << endl;
-                // cout << "new first index is " << firstIndex - 8 -view(firstIndex-4) << endl;
 
                 firstIndex = firstIndex - view(firstIndex-4)-8;
-                // cout << " firstIndex is now " << firstIndex << endl;
                 view(firstIndex) = view(firstIndex) + view(secondIndex) + 8;
                 view(secondIndex) = view(firstIndex);
             }
-            // cout << "HELLO" << endl;
-            // cout << " second index : " << secondIndex << endl;
-            // cout << " view second index + 4 : " << view(secondIndex + 4) << endl;
-            // cout <<  " next index is :  **************"<< view(secondIndex+4) << endl;
             if( secondIndex < N-4 && view(secondIndex + 4) > 0)
             {
-                // cout << "FIRST INDEX value IS NOW " << view(firstIndex) << endl;
-                // cout << "ENTERD2 " << endl;
-
-                // cout << " LINE 1 " << endl;
                 view(firstIndex) = view(firstIndex) + view(secondIndex + 4) + 8;
-                // cout << " LINE 2 " << endl;
                 int nextFirstSentinel = view(secondIndex + 4);
-                // cout << " LINE 3 " << endl;
                 int nextSecondIndex = secondIndex + 8 + nextFirstSentinel;
-                // cout << " LINE 4 " << endl;
-                // cout << " nextFirstSentinel + frontSentinel + 8 = " << nextFirstSentinel + frontSentinel + 8<< endl;
                 view(nextSecondIndex) = view(firstIndex);
                 // found = true;
             }
-            // cout << " found " << found << endl;
 
             assert(valid());}
 
